@@ -1,0 +1,49 @@
+name: Build and Run Docker Container
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      DOCKERFILE_PATH: ./
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq curl cpu-checker
+
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo kvm-ok
+
+      - name: Create .nomodelbuild file
+        run: echo "Download model during runtime..." > .nomodelbuild
+
+      - name: Get system info
+        run: |
+          echo "System Information:"
+          echo "Processors: $(nproc) cores"
+          echo "Memory: $(free -h | grep Mem | awk '{print $2}')"
+          echo "Storage: $(df -h / | tail -1 | awk '{print $2}')"
+          echo "Architecture: $(uname -m)"
+          echo "Kernel Version: $(uname -r)"
+          echo "OS Information:"
+          cat /etc/os-release
+          echo "GPU Information:"
+          lspci | grep -E "VGA|3D|2D" || echo "No GPU information found"
+
+      - name: Build Docker image
+        run: docker build -t my_docker_image:latest ${{ env.DOCKERFILE_PATH }}
+
+      - name: Run Docker container with full resource access and 45 minute timeout
+        run: timeout 2700 docker run --rm --privileged my_docker_image:latest
