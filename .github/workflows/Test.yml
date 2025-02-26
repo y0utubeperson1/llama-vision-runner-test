@@ -1,0 +1,27 @@
+name: System Info
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the 'main' branch
+
+jobs:
+  system_info:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get system info
+      run: |
+        echo "System Information:"
+        
+        # Get the number of processors
+        echo "Processors: $(nproc) cores"
+        
+        # Get the amount of memory in human-readable format
+        echo "Memory: $(free -h | grep Mem | awk '{print $2}')"
+        
+        # Get the amount of storage in human-readable format
+        echo "Storage: $(df -h / | tail -1 | awk '{print $2}')"
+        
+        # Get the system architecture
+        echo "Architecture: $(uname -m)"
