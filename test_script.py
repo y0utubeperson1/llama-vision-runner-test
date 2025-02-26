@@ -1,6 +1,6 @@
 import requests
 import ollama
-import os
+import os, base64
 
 def load_image_file(file_path="test_image.png"):
     with open(file_path, "rb") as image_file:
