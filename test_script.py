@@ -9,7 +9,7 @@ def load_image_file(file_path):
 
 def output_text_from_image(img_b64):
     get_text = ollama.chat(
-            model='llama3.2-vision',
+            model='gemma3:4b',
             messages=[{
                 'role': 'user',
                 'content': 'I am trying to read this text from this image. Please write the letters in the image. Only output the letters, no other text.',
